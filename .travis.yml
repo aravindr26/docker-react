@@ -1,0 +1,29 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+#Build the docker image and tag the build
+before_install:
+  - docker build -t aravindr26/docker-react -f Dockerfile.dev .
+
+#Run the image with the tag created with the build, this is for running the tests
+# The -e CI=true is used for printing the coverage details and returning a status 0 to travis
+# So travis know the test is successful
+script:
+  - docker run -e CI=true aravindr26/docker-react npm run test
+
+#below part id the deployment instructions, the details has to be from the cloud platform,
+#here we use AWS, so the service and details are from AWS console
+deploy:
+  provider: elasticbeanstalk # AWS service
+  region: "us-east-1" # AWS region
+  app: "docker"
+  env: "docker-env"
+  bucket_name: "elasticbeanstalk-us-east-1-923445559289" #AWS S3 bucket name
+  bucket_path: "docker"
+  on:
+    branch: main
+  access_key_id: $AWS_ACCESS_KEY #key added as environment variables in travis
+  secret_access_key: $AWS_SECRET_KEY #key added as environment variables in travis
